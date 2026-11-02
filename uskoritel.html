@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ускоритель ×1.02</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⏩</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<script>
+/* применяем сохранённую тему до отрисовки, чтобы не мигало */
+try { const t = localStorage.getItem('theme'); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#E7ECF1; --panel:#F6F8FA; --ink:#17202B; --muted:#5B6878;
+  --line:#C9D2DC; --accent:#2F5BFF; --accent-ink:#FFFFFF; --sun:#FFD23F;
+  --ok:#1E9E5A; --bad:#D6343F;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#121821; --panel:#1A222D; --ink:#E8EDF3; --muted:#93A0B0;
+    --line:#2C3746; --accent:#6C8BFF; --accent-ink:#0D1220; --sun:#FFD23F;
+    --ok:#3BCB7F; --bad:#FF6670;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#121821; --panel:#1A222D; --ink:#E8EDF3; --muted:#93A0B0;
+  --line:#2C3746; --accent:#6C8BFF; --accent-ink:#0D1220; --sun:#FFD23F;
+  --ok:#3BCB7F; --bad:#FF6670;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 Manrope,system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:880px;margin:0 auto;padding:24px 20px 80px}
+.topbar{display:flex;justify-content:flex-end;margin-bottom:8px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:28px}
+.big{font-family:Unbounded,Manrope,sans-serif;font-weight:800;font-size:clamp(64px,14vw,132px);line-height:.9;letter-spacing:-.04em;margin:0;display:flex;align-items:baseline}
+.big .x{font-weight:500;font-size:.45em;margin-right:.08em;color:var(--accent)}
+.big input{font:inherit;color:inherit;letter-spacing:inherit;background:transparent;border:0;border-bottom:4px dashed var(--line);width:3.1ch;padding:0;outline:none}
+.big input:focus{border-bottom-color:var(--accent)}
+.tag{max-width:30ch;color:var(--muted);margin:0 0 10px}
+.tag b{color:var(--accent)}
+.drop{border:2px dashed var(--line);border-radius:22px;background:var(--panel);padding:44px 20px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.drop:hover,.drop.over{border-color:var(--accent)}
+.drop.over{background:color-mix(in srgb,var(--accent) 8%,var(--panel))}
+.drop strong{display:block;font-size:20px;margin-bottom:4px}
+.drop span{color:var(--muted)}
+h2{font-family:Unbounded,Manrope,sans-serif;font-weight:500;font-size:18px;margin:36px 0 12px}
+.folders{display:grid;gap:8px}
+.folder{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;cursor:pointer}
+.folder.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.folder input[type=radio]{accent-color:var(--accent);width:18px;height:18px;margin:0}
+.folder .name{flex:1;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.folder .sub{color:var(--muted);font-weight:400;font-size:14px}
+.icon-btn{background:none;border:0;color:var(--muted);font-size:20px;cursor:pointer;padding:2px 6px;border-radius:8px}
+.icon-btn:hover{color:var(--bad)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
+button.btn{font:600 15px/1 Manrope,sans-serif;border-radius:12px;padding:12px 16px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+button.btn:hover{border-color:var(--ink)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-size:17px;padding:16px 22px}
+button.primary:hover{filter:brightness(1.08);border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,.folder:focus-within,.drop:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.field{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.field label{display:block;font-size:14px;color:var(--muted);margin-bottom:6px}
+.field input,.field select{width:100%;font:600 15px Manrope,sans-serif;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.hint{font-size:13px;color:var(--muted);margin-top:6px}
+.queue{display:grid;gap:8px}
+.item{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.item .top{display:flex;align-items:center;gap:10px}
+.item .fn{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .st{color:var(--muted);font-size:14px;white-space:nowrap}
+.item.done .st{color:var(--ok)} .item.err .st{color:var(--bad)}
+.item .eta{font-size:13px;color:var(--muted);margin-top:2px;min-height:19px;font-variant-numeric:tabular-nums}
+.item-btn{font:600 13px Manrope,sans-serif;border-radius:8px;padding:4px 10px;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--muted);white-space:nowrap}
+.item-btn:hover{border-color:var(--bad);color:var(--bad)}
+.bar{height:6px;background:var(--line);border-radius:3px;margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.item.done .bar i{background:var(--ok)}
+.empty{color:var(--muted);padding:8px 2px}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.preset{font:600 14px Manrope,sans-serif;border-radius:10px;padding:6px 14px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.preset:hover{border-color:var(--accent);color:var(--accent)}
+.preset.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.speed-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 0 4px}
+.speed-label{font-size:13px;color:var(--muted);white-space:nowrap}
+.spd{font:600 13px Manrope,sans-serif;border-radius:8px;padding:4px 10px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.spd:hover{border-color:var(--accent);color:var(--accent)}
+.spd.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.spd-input{width:96px;font:600 13px Manrope,sans-serif;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:4px 8px}
+.theme-btn{font:600 14px Manrope,sans-serif;color:var(--ink);background:var(--panel);border:1px solid var(--line);cursor:pointer;padding:8px 14px;border-radius:10px;line-height:1}
+.theme-btn:hover{border-color:var(--accent)}
+.warn{background:color-mix(in srgb,var(--sun) 25%,var(--panel));border:1px solid var(--sun);border-radius:14px;padding:12px 14px;margin-bottom:20px;display:none}
+.go{margin-top:24px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#engine{color:var(--muted);font-size:14px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <button class="theme-btn" id="themeBtn" type="button" title="Сменить тему" aria-label="Сменить тему">🌙 Тёмная</button>
+  </div>
+  <div class="warn" id="noFS">Этот браузер не умеет сохранять прямо в папку. Файлы будут скачиваться обычным способом. Для выбора папок открой страницу в Chrome или Edge.</div>
+
+  <header>
+    <div>
+      <h1 class="big"><span class="x">×</span><input id="speed" type="text" inputmode="decimal" value="1.02" aria-label="Множитель скорости"></h1>
+      <div class="presets">
+        <button class="preset" data-v="1.02" type="button">1.02×</button>
+        <button class="preset" data-v="1.25" type="button">1.25×</button>
+        <button class="preset" data-v="1.5" type="button">1.5×</button>
+        <button class="preset" data-v="2" type="button">2×</button>
+        <button class="preset" data-v="0.5" type="button">0.5×</button>
+      </div>
+    </div>
+    <p class="tag">Кидай видео — оно станет чуть быстрее и сразу ляжет в выбранную папку.<br><b>↑ впиши сюда свою скорость</b></p>
+  </header>
+
+  <div class="drop" id="drop" tabindex="0" role="button" aria-label="Выбрать видео">
+    <strong>Перетащи видео сюда</strong>
+    <span>или нажми, чтобы выбрать. Можно сразу несколько.</span>
+    <input id="fileInput" type="file" accept="video/*,.mkv,.mov" multiple hidden>
+  </div>
+
+  <h2>Куда сохранять</h2>
+  <div class="folders" id="folders"></div>
+  <div class="row">
+    <button class="btn" id="addFolder" type="button">+ Добавить папку</button>
+  </div>
+
+  <h2>Настройки</h2>
+  <div class="settings">
+    <div class="field">
+      <label for="mode">Способ</label>
+      <select id="mode">
+        <option value="fast">Быстро, без потери качества</option>
+        <option value="encode">Пережать в MP4 (дольше)</option>
+      </select>
+      <div class="hint">Быстрый режим не трогает картинку, меняет только тайминг. Если файл не получится — сам переключится на пережатие.</div>
+    </div>
+    <div class="field">
+      <label for="par">Сколько видео делать одновременно</label>
+      <select id="par"></select>
+      <div class="hint">Больше — быстрее для пачки, но ест больше оперативки. Подобрано под твой компьютер.</div>
+    </div>
+    <div class="field">
+      <label for="suffix">Приписка к имени файла</label>
+      <input id="suffix" type="text" value="_{x}x">
+      <div class="hint">{x} заменится на скорость: video_1.02x.mp4</div>
+    </div>
+  </div>
+
+  <h2>Очередь</h2>
+  <div class="queue" id="queue"><div class="empty">Пока пусто. Закинь видео выше.</div></div>
+
+  <div class="go">
+    <button class="btn primary" id="start" type="button" disabled>Ускорить и сохранить</button>
+    <button class="btn" id="clear" type="button">Очистить готовые</button>
+    <span id="engine"></span>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const hasFS = 'showDirectoryPicker' in window;
+if (!hasFS) $('#noFS').style.display = 'block';
+
+let busy = false;
+
+function escapeHtml(s) { return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function parseSpeed(v) {
+  const n = parseFloat(String(v).trim().replace(',', '.'));
+  return (isFinite(n) && n >= 0.5 && n <= 4) ? n : null;
+}
+function fmtTime(s) {
+  s = Math.max(0, Math.ceil(s));
+  if (s < 60) return s + ' с';
+  const m = Math.floor(s / 60), r = s % 60;
+  if (m < 60) return `${m} мин ${String(r).padStart(2, '0')} с`;
+  return `${Math.floor(m / 60)} ч ${String(m % 60).padStart(2, '0')} мин`;
+}
+
+/* ---------- тема (вручную, запоминается) ---------- */
+function isDark() {
+  const t = document.documentElement.dataset.theme;
+  return t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function paintThemeBtn() { $('#themeBtn').textContent = isDark() ? '☀️ Светлая' : '🌙 Тёмная'; }
+$('#themeBtn').addEventListener('click', () => {
+  const next = isDark() ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem('theme', next); } catch (e) {}
+  paintThemeBtn();
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', paintThemeBtn);
+paintThemeBtn();
+
+/* ---------- хранилище папок (IndexedDB) ---------- */
+const DB = {
+  db: null,
+  open() {
+    if (this.db) return Promise.resolve(this.db);
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('uskoritel', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => { this.db = r.result; res(this.db); };
+      r.onerror = () => rej(r.error);
+    });
+  },
+  async get(k) {
+    try { const db = await this.open();
+      return await new Promise(res => { const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(undefined); });
+    } catch { return undefined; }
+  },
+  async set(k, v) {
+    try { const db = await this.open();
+      await new Promise(res => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = res; t.onerror = res; });
+    } catch {}
+  }
+};
+
+let folders = [];     // [{id, handle}]
+let activeId = 'download';
+
+async function loadFolders() {
+  folders = (await DB.get('folders')) || [];
+  activeId = (await DB.get('active')) || (folders[0]?.id ?? 'download');
+  if (activeId === 'ask' && !hasFS) activeId = 'download';
+  if (activeId !== 'download' && activeId !== 'ask' && !folders.find(f => f.id === activeId)) activeId = 'download';
+  renderFolders();
+}
+async function saveFolders() {
+  await DB.set('folders', folders);
+  await DB.set('active', activeId);
+}
+function renderFolders() {
+  const box = $('#folders');
+  box.innerHTML = '';
+  const opts = [
+    ...folders.map(f => ({ id: f.id, name: f.handle.name, sub: 'папка на компьютере', removable: true })),
+    ...(hasFS ? [{ id: 'ask', name: 'Спрашивать каждый раз', sub: 'выберешь место для каждого файла' }] : []),
+    { id: 'download', name: 'Обычная загрузка', sub: 'в папку «Загрузки» браузера' }
+  ];
+  for (const o of opts) {
+    const el = document.createElement('label');
+    el.className = 'folder' + (o.id === activeId ? ' active' : '');
+    el.innerHTML = `<input type="radio" name="folder" ${o.id === activeId ? 'checked' : ''}>
+      <span class="name"></span>${o.removable ? '<button class="icon-btn" type="button" title="Убрать из списка" aria-label="Убрать папку">×</button>' : ''}`;
+    el.querySelector('.name').innerHTML = `📁 ${escapeHtml(o.name)} <span class="sub">— ${o.sub}</span>`;
+    el.querySelector('input').addEventListener('change', () => { activeId = o.id; saveFolders(); renderFolders(); });
+    const rm = el.querySelector('.icon-btn');
+    if (rm) rm.addEventListener('click', e => {
+      e.preventDefault(); e.stopPropagation();
+      folders = folders.filter(f => f.id !== o.id);
+      if (activeId === o.id) activeId = folders[0]?.id ?? 'download';
+      saveFolders(); renderFolders();
+    });
+    box.appendChild(el);
+  }
+}
+$('#addFolder').addEventListener('click', async () => {
+  if (!hasFS) { alert('Выбор папок работает в Chrome и Edge.'); return; }
+  try {
+    const handle = await window.showDirectoryPicker({ id: 'uskoritel', mode: 'readwrite' });
+    for (const f of folders) if (await f.handle.isSameEntry(handle)) { activeId = f.id; saveFolders(); renderFolders(); return; }
+    const id = 'f' + Date.now();
+    folders.push({ id, handle });
+    activeId = id;
+    await saveFolders(); renderFolders();
+  } catch (e) { if (e.name !== 'AbortError') alert('Не получилось открыть папку: ' + e.message); }
+});
+
+/* ---------- очередь ---------- */
+const SPEED_CHIPS = ['0.95', '0.98', '1.02', '1.04', '1.06', '1.08'];
+let queue = []; // {file, el, status, eng, cancelled, t0}
+
+function addFiles(list) {
+  for (const file of list) {
+    if (!file.type.startsWith('video/') && !/\.(mp4|mov|mkv|webm|m4v|avi)$/i.test(file.name)) continue;
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.innerHTML = `
+      <div class="top">
+        <span class="fn"></span>
+        <span class="st">ждёт</span>
+        <button class="item-btn" type="button" title="Убрать из очереди">✕</button>
+      </div>
+      <div class="eta"></div>
+      <div class="speed-row">
+        <span class="speed-label">Скорость:</span>
+        ${SPEED_CHIPS.map(v => `<button class="spd" type="button" data-v="${v}">${v}×</button>`).join('')}
+        <input class="spd-input" type="text" inputmode="decimal" placeholder="как вверху" title="Своя скорость для этого видео. Пусто — берётся из большого поля сверху." aria-label="Скорость для этого видео">
+      </div>
+      <div class="bar"><i></i></div>`;
+    el.querySelector('.fn').textContent = `${file.name} · ${(file.size / 1048576).toFixed(1)} МБ`;
+
+    const q = { file, el, status: 'wait', eng: null, cancelled: false, t0: 0 };
+    const chips = el.querySelectorAll('.spd');
+    const inp = el.querySelector('.spd-input');
+    chips.forEach(b => b.addEventListener('click', () => {
+      const was = b.classList.contains('active');
+      chips.forEach(x => x.classList.remove('active'));
+      if (was) { inp.value = ''; return; }      // повторный клик — вернуть «как вверху»
+      b.classList.add('active');
+      inp.value = b.dataset.v;
+    }));
+    inp.addEventListener('input', () => chips.forEach(x => x.classList.toggle('active', x.dataset.v === inp.value.trim())));
+
+    el.querySelector('.item-btn').addEventListener('click', () => {
+      if (q.status === 'run') {
+        if (q.eng) { q.cancelled = true; q.eng.kill(); }   // отмена текущего видео
+      } else {
+        queue = queue.filter(x => x !== q);
+        renderQueue();
+      }
+    });
+    queue.push(q);
+  }
+  renderQueue();
+}
+function renderQueue() {
+  const box = $('#queue');
+  box.innerHTML = '';
+  if (!queue.length) box.innerHTML = '<div class="empty">Пока пусто. Закинь видео выше.</div>';
+  queue.forEach(q => box.appendChild(q.el));
+  $('#start').disabled = busy || !queue.some(q => q.status === 'wait' || q.status === 'err' || q.status === 'cancel');
+}
+function setItem(q, status, text, pct) {
+  q.status = status;
+  q.el.className = 'item' + (status === 'done' ? ' done' : status === 'err' ? ' err' : '');
+  q.el.querySelector('.st').textContent = text;
+  if (pct != null) q.el.querySelector('.bar i').style.width = Math.max(0, Math.min(100, pct)) + '%';
+  const btn = q.el.querySelector('.item-btn');
+  btn.textContent = status === 'run' ? 'Отмена' : '✕';
+  btn.title = status === 'run' ? 'Отменить это видео' : 'Убрать из очереди';
+  if (status !== 'run') q.el.querySelector('.eta').textContent = '';
+}
+function showStats(q, p) {
+  const eta = q.el.querySelector('.eta');
+  const s = (performance.now() - q.t0) / 1000;
+  if (s < 1.5 || p < 0.02) { eta.textContent = 'считаю скорость…'; return; }
+  const mbps = (q.file.size / 1048576) * p / s;
+  const left = s * (1 - p) / p;
+  eta.textContent = `${mbps.toFixed(1)} МБ/с · осталось ~${fmtTime(left)}`;
+}
+$('#clear').addEventListener('click', () => { queue = queue.filter(q => q.status !== 'done' && q.status !== 'cancel'); renderQueue(); });
+
+const drop = $('#drop'), fileInput = $('#fileInput');
+drop.addEventListener('click', () => fileInput.click());
+drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+fileInput.addEventListener('change', () => { addFiles(fileInput.files); fileInput.value = ''; });
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('drop', e => e.preventDefault());
+window.addEventListener('beforeunload', e => { if (busy) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------- временная папка на диске (OPFS) для больших файлов ---------- */
+const TMP = 'uskoritel-tmp';
+let tmpDirP = null;
+function getTmpDir() {
+  return tmpDirP ||= navigator.storage.getDirectory().then(r => r.getDirectoryHandle(TMP, { create: true }));
+}
+async function dropTmp(name) {
+  for (let i = 0; i < 4; i++) {          // после terminate() файл ещё мгновение занят — пробуем несколько раз
+    try { await (await getTmpDir()).removeEntry(name); return; }
+    catch (e) { if (e.name === 'NotFoundError') return; await new Promise(r => setTimeout(r, 250)); }
+  }
+}
+async function cleanupTmp() {   // убираем мусор от прошлых запусков
+  try {
+    const dir = await getTmpDir();
+    const names = [];
+    for await (const [n] of dir.entries()) names.push(n);
+    for (const n of names) { try { await dir.removeEntry(n); } catch {} }
+  } catch {}
+}
+
+/* ---------- ffmpeg: пул воркеров ----------
+   Вход читается прямо с диска (WORKERFS), а выход пишется кусками
+   во временный файл на диске, а не в память — поэтому размер не ограничен. */
+const CORE_CDNS = [
+  'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd',
+  'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd'
+];
+const WORKER_SRC = `
+let core = null, dev = 0, cur = null, tmpDir = null;
+const EIO = 29, EINVAL = 28, ENOSPC = 51;
+function fsErr(c) { return new core.FS.ErrnoError(c); }
+/* «устройство», через которое ffmpeg пишет прямо в файл на диске */
+const ops = {
+  open() {}, close() {},
+  read(stream, buf, off, len, pos) {
+    try { return cur.ah.read(buf.subarray(off, off + len), { at: pos }); }
+    catch (e) { throw fsErr(EIO); }
+  },
+  write(stream, buf, off, len, pos) {
+    try {
+      let n = 0;
+      while (n < len) {
+        const w = cur.ah.write(buf.subarray(off + n, off + len), { at: pos + n });
+        if (!(w > 0)) throw new Error('write');
+        n += w;
+      }
+      return len;
+    } catch (e) { throw fsErr(ENOSPC); }
+  },
+  llseek(stream, offset, whence) {
+    let p = offset;
+    if (whence === 1) p += stream.position;
+    else if (whence === 2) p += cur.ah.getSize();
+    if (p < 0) throw fsErr(EINVAL);
+    return p;
+  }
+};
+self.onmessage = async (e) => {
+  const { id, type, data } = e.data;
+  try {
+    let result = true;
+    if (type === 'load') {
+      importScripts(data.base + '/ffmpeg-core.js');
+      core = await self.createFFmpegCore({ mainScriptUrlOrBlob: data.base + '/ffmpeg-core.js#' + btoa(JSON.stringify({ wasmURL: data.base + '/ffmpeg-core.wasm' })) });
+      core.setLogger(({ message }) => self.postMessage({ type: 'log', data: message }));
+      core.setProgress(({ progress }) => self.postMessage({ type: 'progress', data: progress }));
+      result = { stream: false };
+      try {
+        if (self.FileSystemFileHandle && 'createSyncAccessHandle' in FileSystemFileHandle.prototype && navigator.storage && navigator.storage.getDirectory) {
+          const root = await navigator.storage.getDirectory();
+          tmpDir = await root.getDirectoryHandle('${TMP}', { create: true });
+          dev = core.FS.makedev(99, 0);
+          core.FS.registerDevice(dev, ops);
+          result = { stream: true };
+        }
+      } catch (_) {}
+    } else if (type === 'mount') {
+      try { core.FS.mkdir(data.dir); } catch (_) {}
+      core.FS.mount(core.FS.filesystems.WORKERFS, { blobs: [{ name: data.name, data: data.file }] }, data.dir);
+    } else if (type === 'unmount') {
+      try { core.FS.unmount(data.dir); } catch (_) {}
+      try { core.FS.rmdir(data.dir); } catch (_) {}
+    } else if (type === 'exec') {
+      core.setTimeout(-1);
+      if (data.out) {
+        const fh = await tmpDir.getFileHandle(data.out, { create: true });
+        const ah = await fh.createSyncAccessHandle();
+        ah.truncate(0);
+        cur = { ah };
+        const path = '/' + data.out;
+        core.FS.mkdev(path, 438, dev);
+        try { core.exec(...data.args); result = core.ret; core.reset(); }
+        finally {
+          try { core.FS.unlink(path); } catch (_) {}
+          try { ah.flush(); } catch (_) {}
+          ah.close(); cur = null;
+        }
+      } else {
+        core.exec(...data.args);
+        result = core.ret;
+        core.reset();
+      }
+    } else if (type === 'read') {
+      const bytes = core.FS.readFile(data.path);
+      self.postMessage({ id, type, data: bytes }, [bytes.buffer]);
+      return;
+    } else if (type === 'delete') {
+      try { core.FS.unlink(data.path); } catch (_) {}
+    }
+    self.postMessage({ id, type, data: result });
+  } catch (err) {
+    self.postMessage({ id, type: 'error', data: String(err && err.message || err) });
+  }
+};`;
+const WORKER_URL = URL.createObjectURL(new Blob([WORKER_SRC], { type: 'text/javascript' }));
+
+class Engine {
+  constructor() {
+    this.worker = new Worker(WORKER_URL);
+    this.n = 0; this.pending = new Map(); this.onProgress = null; this.stream = false; this.dead = false;
+    this.worker.onmessage = ({ data: m }) => {
+      if (m.type === 'progress') { this.onProgress && this.onProgress(m.data); return; }
+      if (m.type === 'log') return;
+      const p = this.pending.get(m.id); if (!p) return;
+      this.pending.delete(m.id);
+      m.type === 'error' ? p.rej(new Error(m.data)) : p.res(m.data);
+    };
+    this.worker.onerror = (e) => this.failAll(new Error(e.message || 'worker error'));
+  }
+  failAll(err) { for (const p of this.pending.values()) p.rej(err); this.pending.clear(); }
+  call(type, data, transfer = []) {
+    if (this.dead) return Promise.reject(new Error('cancelled'));
+    const id = ++this.n;
+    return new Promise((res, rej) => { this.pending.set(id, { res, rej }); this.worker.postMessage({ id, type, data }, transfer); });
+  }
+  /* ffmpeg.wasm нельзя прервать изнутри — гасим воркер целиком */
+  kill() {
+    if (this.dead) return;
+    this.dead = true;
+    this.onProgress = null;
+    this.worker.terminate();
+    this.failAll(new Error('cancelled'));
+  }
+  terminate() { this.kill(); }
+}
+
+function withTimeout(p, ms) { return Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error('таймаут загрузки')), ms))]); }
+
+let coreBase = null;           // какой CDN сработал
+const engines = [];            // готовые движки
+let firstReady = null;
+async function makeEngine() {
+  const bases = coreBase ? [coreBase] : CORE_CDNS;
+  let lastErr;
+  for (const base of bases) {
+    const eng = new Engine();
+    try {
+      const r = await withTimeout(eng.call('load', { base }), 120000);
+      eng.stream = !!(r && r.stream);
+      coreBase = base; return eng;
+    }
+    catch (e) { lastErr = e; eng.terminate(); console.warn('CDN failed', base, e); }
+  }
+  throw lastErr;
+}
+function preloadFirst() {
+  if (firstReady) return firstReady;
+  $('#engine').textContent = 'Загружаю движок (~30 МБ, один раз)…';
+  firstReady = makeEngine().then(e => {
+    engines.push(e);
+    $('#engine').textContent = e.stream ? 'Движок готов, размер видео не ограничен' : 'Движок готов (в этом браузере — видео до 1,8 ГБ)';
+    return e;
+  })
+    .catch(e => { firstReady = null; $('#engine').textContent = 'Движок не загрузился: ' + e.message; throw e; });
+  return firstReady;
+}
+async function ensureEngines(n) {
+  for (let i = engines.length - 1; i >= 0; i--) if (engines[i].dead) engines.splice(i, 1);   // убрали отменённые
+  if (!engines.length) firstReady = null;
+  await preloadFirst();
+  const need = n - engines.length;
+  if (need > 0) {
+    $('#engine').textContent = `Запускаю ${n} потока…`;
+    const extra = await Promise.allSettled(Array.from({ length: need }, makeEngine));
+    for (const r of extra) if (r.status === 'fulfilled') engines.push(r.value);
+  }
+  return engines.slice(0, n);
+}
+
+/* одновременная обработка */
+const cores = navigator.hardwareConcurrency || 4;
+const defPar = Math.min(6, Math.max(1, Math.floor(cores * 0.75)));
+for (let i = 1; i <= Math.min(8, Math.max(2, cores)); i++) {
+  const o = document.createElement('option'); o.value = i; o.textContent = i + (i === defPar ? ' (рекомендую)' : '');
+  if (i === defPar) o.selected = true; $('#par').appendChild(o);
+}
+
+function getSpeed() { return parseSpeed($('#speed').value); }
+
+function atempoChain(s) {
+  const f = [];
+  while (s > 2) { f.push('atempo=2.0'); s /= 2; }
+  while (s < 0.5) { f.push('atempo=0.5'); s /= 0.5; }
+  f.push(`atempo=${s.toFixed(6)}`);
+  return f.join(',');
+}
+
+let jobN = 0;
+async function convert(eng, q, speed, mode) {
+  // своя скорость у видео; пусто — берём общую
+  const raw = q.el.querySelector('.spd-input').value.trim();
+  if (raw) {
+    const v = parseSpeed(raw);
+    if (v == null) throw new Error('badspeed');
+    speed = v;
+  }
+  const ext = (q.file.name.match(/\.([a-z0-9]+)$/i)?.[1] || 'mp4').toLowerCase();
+  const job = ++jobN;
+  const dir = '/in' + job;
+  const inPath = `${dir}/in.${ext}`;
+  const base = q.file.name.replace(/\.[^.]+$/, '');
+  const suffix = $('#suffix').value.replaceAll('{x}', String(speed));
+  const fastExt = ['mp4', 'mov', 'mkv', 'webm', 'm4v'].includes(ext) ? ext : 'mp4';
+
+  q.eng = eng; q.t0 = performance.now();
+  setItem(q, 'run', 'начинаю…', 2);
+
+  let attempt = 0;
+  const run = async (m) => {
+    const oext = m === 'fast' ? fastExt : 'mp4';
+    const tmpName = `job${job}-${++attempt}-${Date.now().toString(36)}.${oext}`;
+    const out = eng.stream ? '/' + tmpName : `/out${job}.${oext}`;
+    const aCodec = oext === 'webm'
+      ? ['-c:a', 'libopus', '-b:a', '160k']
+      : ['-c:a', 'aac', '-aac_coder', 'fast', '-b:a', '192k'];
+    const args = m === 'fast'
+      ? ['-nostdin', '-y', '-threads', '0', '-itsscale', String(1 / speed), '-i', inPath, '-i', inPath,
+         '-map', '0:v:0', '-map', '1:a:0?', '-c:v', 'copy', '-af', atempoChain(speed), ...aCodec]
+      : ['-nostdin', '-y', '-threads', '0', '-i', inPath, '-filter:v', `setpts=PTS/${speed}`, '-filter:a', atempoChain(speed),
+         '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'fastdecode', '-crf', '23', '-pix_fmt', 'yuv420p',
+         '-c:a', 'aac', '-aac_coder', 'fast', '-b:a', '192k'];
+    if (/^(mp4|mov|m4v)$/.test(oext)) args.push('-movflags', '+faststart');
+    args.push(out);
+
+    if (eng.stream) {
+      let code;
+      try { code = await eng.call('exec', { args, out: tmpName }); }
+      catch (e) { dropTmp(tmpName); throw e; }
+      if (code !== 0) { await dropTmp(tmpName); throw new Error('ffmpeg ' + code); }
+      const file = await (await (await getTmpDir()).getFileHandle(tmpName)).getFile();
+      return { data: file, ext: oext, tmp: tmpName };
+    }
+
+    const code = await eng.call('exec', { args, out: null });
+    if (code !== 0) { await eng.call('delete', { path: out }); throw new Error('ffmpeg ' + code); }
+    const data = await eng.call('read', { path: out });
+    await eng.call('delete', { path: out });
+    return { data, ext: oext, tmp: null };
+  };
+
+  let res;
+  try {
+    await eng.call('mount', { dir, name: `in.${ext}`, file: q.file });   // без копирования в память
+    eng.onProgress = (p) => {
+      if (!(p > 0)) return;
+      p = Math.min(p, 1);
+      setItem(q, 'run', `ускоряю… ${Math.round(p * 100)}%`, 5 + p * 90);
+      showStats(q, p);
+    };
+    try { res = await run(mode); }
+    catch (e) {
+      if (mode !== 'fast' || q.cancelled) throw e;
+      setItem(q, 'run', 'пробую с пережатием…', 5);
+      q.t0 = performance.now();
+      res = await run('encode');
+    }
+  } finally {
+    eng.onProgress = null;
+    q.eng = null;                       // после этого отмена уже не имеет смысла
+    await eng.call('unmount', { dir }).catch(() => {});
+  }
+  const mime = { mp4: 'video/mp4', m4v: 'video/mp4', mov: 'video/quicktime', mkv: 'video/x-matroska', webm: 'video/webm' }[res.ext] || 'video/mp4';
+  return { blob: new Blob([res.data], { type: mime }), name: `${base}${suffix}.${res.ext}`, tmp: res.tmp };
+}
+
+async function uniqueName(dir, name) {
+  const m = name.match(/^(.*?)(\.[^.]+)?$/);
+  for (let i = 0; i < 1000; i++) {
+    const n = i ? `${m[1]} (${i})${m[2] || ''}` : name;
+    try { await dir.getFileHandle(n); } catch { return n; }
+  }
+  return name;
+}
+
+function downloadBlob(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 300000);
+}
+
+let saveChain = Promise.resolve();   // сохраняем по очереди, чтобы не было конфликтов имён
+function save(blob, name) {
+  const job = saveChain.then(() => saveNow(blob, name));
+  saveChain = job.catch(() => {});
+  return job;
+}
+/* возвращает {text, dl}: dl = true, если файл отдан браузеру на скачивание */
+async function saveNow(blob, name) {
+  if (activeId === 'download') {
+    downloadBlob(blob, name);
+    return { text: 'скачано', dl: true };
+  }
+  if (activeId === 'ask') {
+    let h;
+    try { h = await window.showSaveFilePicker({ suggestedName: name }); }
+    catch (e) {
+      if (e.name === 'AbortError') throw e;
+      // браузер не даёт открыть окно, пока давно не было клика — скачиваем обычным способом
+      downloadBlob(blob, name);
+      return { text: 'скачано (окно сохранения не открылось)', dl: true };
+    }
+    const w = await h.createWritable(); await w.write(blob); await w.close();
+    return { text: 'сохранено', dl: false };
+  }
+  const f = folders.find(f => f.id === activeId);
+  const dir = f.handle;
+  const fname = await uniqueName(dir, name);
+  const fh = await dir.getFileHandle(fname, { create: true });
+  const w = await fh.createWritable(); await w.write(blob); await w.close();
+  return { text: `в «${dir.name}»`, dl: false };
+}
+
+$('#start').addEventListener('click', async () => {
+  const speed = getSpeed();
+  if (!speed) { alert('Скорость должна быть числом от 0.5 до 4, например 1.02'); $('#speed').focus(); return; }
+
+  if (activeId !== 'download' && activeId !== 'ask') {
+    const f = folders.find(f => f.id === activeId);
+    try {
+      let p = await f.handle.queryPermission({ mode: 'readwrite' });
+      if (p !== 'granted') p = await f.handle.requestPermission({ mode: 'readwrite' });
+      if (p !== 'granted') { alert('Без доступа к папке сохранить не получится.'); return; }
+    } catch (e) { alert('Папка недоступна: ' + e.message); return; }
+  }
+
+  const todo = queue.filter(q => q.status === 'wait' || q.status === 'err' || q.status === 'cancel');
+  if (!todo.length) return;
+  // «спрашивать каждый раз» — по одному, иначе окна сохранения налезут друг на друга
+  const par = activeId === 'ask' ? 1 : Math.min(parseInt($('#par').value, 10) || 1, todo.length);
+
+  busy = true; renderQueue();
+  let pool;
+  try { pool = await ensureEngines(par); }
+  catch { busy = false; renderQueue(); return; }
+  $('#engine').textContent = `Работаю в ${pool.length} ${pool.length === 1 ? 'поток' : 'потока'}`;
+
+  const mode = $('#mode').value;
+  const t0 = performance.now();
+  const target = activeId;
+  let next = 0;
+
+  const runner = async (slot) => {
+    while (next < todo.length) {
+      const q = todo[next++];
+      if (!queue.includes(q)) continue;          // убрали из очереди, пока ждал
+      q.cancelled = false;
+
+      if (slot.eng.dead) {                       // прошлое видео отменили — поднимаем новый движок
+        try {
+          setItem(q, 'run', 'перезапускаю движок…', 1);
+          slot.eng = await makeEngine();
+          engines.push(slot.eng);
+        } catch (e) { setItem(q, 'err', 'движок не загрузился', 0); continue; }
+      }
+      const eng = slot.eng;
+      if (!eng.stream && q.file.size > 1.8 * 1024 ** 3) { setItem(q, 'err', 'больше 1,8 ГБ — в этом браузере не потянет, открой в Chrome', 0); continue; }
+
+      const t = performance.now();
+      let tmp = null, delayedDrop = false;
+      try {
+        const r = await convert(eng, q, speed, mode);
+        tmp = r.tmp;
+        setItem(q, 'run', 'сохраняю…', 97);
+        const where = await save(r.blob, r.name);
+        delayedDrop = where.dl;
+        const sec = (performance.now() - t) / 1000;
+        const mbps = (q.file.size / 1048576) / Math.max(sec, 0.001);
+        setItem(q, 'done', `готово за ${sec.toFixed(1)} с (${mbps.toFixed(1)} МБ/с), ${where.text}`, 100);
+      } catch (e) {
+        if (q.cancelled || e.name === 'AbortError') {
+          setItem(q, 'cancel', 'отменено', 0);
+        } else {
+          console.error(e);
+          const msg = e.message === 'badspeed' ? 'скорость от 0.5 до 4'
+            : e.name === 'QuotaExceededError' ? 'не хватает места на диске'
+            : 'ошибка — попробуй режим «Пережать»';
+          setItem(q, 'err', msg, 0);
+        }
+      } finally {
+        q.eng = null;
+        if (tmp) { if (delayedDrop || target === 'download') setTimeout(() => dropTmp(tmp), 300000); else dropTmp(tmp); }
+      }
+    }
+  };
+  await Promise.all(pool.map(eng => runner({ eng })));
+
+  $('#engine').textContent = `Всё готово за ${((performance.now() - t0) / 1000).toFixed(1)} с`;
+  busy = false; renderQueue();
+});
+
+document.querySelectorAll('.preset').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $('#speed').value = btn.dataset.v;
+    syncPresets();
+  });
+});
+function syncPresets() {
+  const v = $('#speed').value.trim().replace(',', '.');
+  document.querySelectorAll('.preset').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+}
+$('#speed').addEventListener('input', syncPresets);
+syncPresets();
+
+loadFolders();
+// сначала чистим старые временные файлы, потом грузим движок
+cleanupTmp().finally(() => preloadFirst().catch(() => {}));
+</script>
+</body>
+</html>
